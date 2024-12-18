@@ -26,6 +26,7 @@ export const ExpenseSchema = {
 	tags: {
 		type: [String],
 		required: false,
+		default: [],
 	},
 	type: {
 		type: String,

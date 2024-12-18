@@ -44,7 +44,7 @@ export type Group = {
 	icon?: string;
 	banner?: string;
 	tags?: string[];
-	createdBy: string;
+	author: string;
 };
 
 export type Member = {

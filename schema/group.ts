@@ -14,9 +14,10 @@ export const GroupSchema = {
 		type: String,
 		default: fallbackAssets.banner,
 	},
-	type: {
-		type: String,
-		default: "Other",
+	tags: {
+		type: [String],
+		required: false,
+		default: [],
 	},
 	author: {
 		type: mongoose.Schema.Types.ObjectId,
