@@ -1,0 +1,22 @@
+{
+  "name": "balance-it",
+  "description": "Manage all your money in one place. Get summaries and reports to help you make better decisions.",
+  "version": "1.0.0",
+  "main": "server.ts",
+  "repository": "https://github.com/snehasharma1111/balance-it-server.git",
+  "author": "Sneha Sharma <snehasharma9205@gmail.com>",
+  "license": "MIT",
+  "private": false,
+  "scripts": {
+    "start": "node build/server.js",
+    "dev": "nodemon server.ts",
+    "build": "tsc"
+  },
+  "keywords": [],
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "nodemon": "^3.1.9",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.2"
+  }
+}
