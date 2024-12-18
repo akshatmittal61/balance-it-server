@@ -28,6 +28,10 @@ export const ExpenseSchema = {
 		required: false,
 		default: [],
 	},
+	icon: {
+		type: String,
+		required: false,
+	},
 	type: {
 		type: String,
 		enum: Object.values(EXPENSE_TYPE),
