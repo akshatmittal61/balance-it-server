@@ -30,3 +30,9 @@ export const nodeEnv = configService.safeGet(
 	() => configService.get("NODE_ENV") as T_NODE_ENV,
 	"development"
 );
+
+export const jwtSecret = Object.freeze({
+	authRefresh: configService.get("JWT_AUTH_REFRESH_SECRET"),
+	authAccess: configService.get("JWT_AUTH_ACCESS_SECRET"),
+	oauthValidator: configService.get("JWT_OAUTH_VALIDATOR_SECRET"),
+});
