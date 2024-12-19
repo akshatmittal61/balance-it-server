@@ -2,6 +2,8 @@ import express from "express";
 import { Server as HttpServer } from "http";
 import { createDbContainer } from "../db";
 import { Logger } from "../log";
+import { errorHandler } from "../middlewares";
+import { apiRouter } from "../routes";
 
 export class Server {
 	private app = express();
@@ -20,7 +22,10 @@ export class Server {
 		this.app.use(express.urlencoded({ extended: true }));
 	}
 
-	public createRouter() {}
+	public createRouter() {
+		this.app.use("/api/v1", apiRouter);
+		this.app.use(errorHandler);
+	}
 
 	public async connectDb() {
 		const connectionStatus = await this.container.db.connect();

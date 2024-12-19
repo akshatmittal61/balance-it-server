@@ -1,6 +1,8 @@
 import { AuthMapping, Expense, Group, Member, Split, User } from "./models";
+import { UpdateModel } from "./parser";
 
 export type IUser = User;
+export type UpdateUser = Omit<UpdateModel<User>, "email">;
 export type IAuthMapping = Omit<AuthMapping, "user"> & {
 	user: IUser | null;
 };
