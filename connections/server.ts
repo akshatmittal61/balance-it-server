@@ -1,8 +1,16 @@
 import express from "express";
 import { Server as HttpServer } from "http";
+import { ServerController } from "../controllers";
 import { createDbContainer } from "../db";
 import { Logger } from "../log";
-import { errorHandler } from "../middlewares";
+import {
+	cors,
+	errorHandler,
+	parseCookies,
+	profiler,
+	tracer,
+	useDb,
+} from "../middlewares";
 import { apiRouter } from "../routes";
 
 export class Server {
@@ -20,9 +28,19 @@ export class Server {
 	public bindMiddlewares() {
 		this.app.use(express.json());
 		this.app.use(express.urlencoded({ extended: true }));
+		this.app.use(tracer);
+		this.app.use(cors);
+		this.app.use(parseCookies);
+		this.app.use(profiler);
 	}
 
 	public createRouter() {
+		this.app.get("/api/health", ServerController.health(this.container.db));
+		this.app.get(
+			"/api/heartbeat",
+			ServerController.heartbeat(this.container.db)
+		);
+		this.app.use(useDb(this.container.db));
 		this.app.use("/api/v1", apiRouter);
 		this.app.use(errorHandler);
 	}
