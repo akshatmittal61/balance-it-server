@@ -7,25 +7,18 @@ import {
 	Member,
 	UpdateQuery,
 } from "../types";
-import {
-	getNonNullValue,
-	getObjectFromMongoResponse,
-	omitKeys,
-} from "../utils";
+import { getNonNullValue, getObjectFromMongoResponse } from "../utils";
 import { BaseRepo } from "./base";
 
 class MemberRepo extends BaseRepo<Member, IMember> {
 	protected model = MemberModel;
 	public parser(input: Member | null): IMember | null {
-		const res = getObjectFromMongoResponse<Member>(input);
+		const res = super.parser(input);
 		if (!res) return null;
 		const user = getObjectFromMongoResponse<IUser>(res.user);
 		if (!user) return null;
-		const parsed = omitKeys(res, ["user"]);
-		return {
-			...user,
-			...parsed,
-		};
+		res.user = user;
+		return res;
 	}
 	public async findOne(query: FilterQuery<Member>): Promise<IMember | null> {
 		const res = await this.model.findOne<Member>(query).populate("user");

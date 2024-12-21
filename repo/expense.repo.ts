@@ -4,9 +4,11 @@ import {
 	Expense,
 	FilterQuery,
 	IExpense,
+	IGroup,
+	IUser,
 	UpdateQuery,
 } from "../types";
-import { getNonNullValue } from "../utils";
+import { getNonNullValue, getObjectFromMongoResponse } from "../utils";
 import { BaseRepo } from "./base";
 
 class ExpenseRepo extends BaseRepo<Expense, IExpense> {
@@ -14,20 +16,34 @@ class ExpenseRepo extends BaseRepo<Expense, IExpense> {
 	public parser(input: Expense | null): IExpense | null {
 		const res = super.parser(input);
 		if (!res) return null;
-		if (res.group) res.group = res?.group || null;
+		const author = getObjectFromMongoResponse<IUser>(res.author);
+		if (!author) return null;
+		res.author = author;
+		const group = getObjectFromMongoResponse<IGroup>(res.group);
+		if (group) res.group = group;
 		return res;
 	}
 	public async findOne(
 		query: FilterQuery<Expense>
 	): Promise<IExpense | null> {
-		const res = await this.model.findOne<Expense>(query).populate("author");
+		const res = await this.model
+			.findOne<Expense>(query)
+			.populate("author")
+			.populate({
+				path: "group",
+				populate: { path: "author" },
+			});
 		return this.parser(res);
 	}
 	public async findById(id: string): Promise<IExpense | null> {
 		try {
 			const res = await this.model
 				.findById<Expense>(id)
-				.populate("author");
+				.populate("author")
+				.populate({
+					path: "group",
+					populate: { path: "author" },
+				});
 			return this.parser(res);
 		} catch (error: any) {
 			if (error.kind === "ObjectId") return null;
@@ -37,7 +53,13 @@ class ExpenseRepo extends BaseRepo<Expense, IExpense> {
 	public async find(
 		query: FilterQuery<Expense>
 	): Promise<Array<IExpense> | null> {
-		const res = await this.model.find<Expense>(query).populate("author");
+		const res = await this.model
+			.find<Expense>(query)
+			.populate("author")
+			.populate({
+				path: "group",
+				populate: { path: "author" },
+			});
 		const parsedRes = res.map(this.parser).filter((obj) => obj != null);
 		if (parsedRes.length === 0) return null;
 		return parsedRes;
@@ -46,6 +68,10 @@ class ExpenseRepo extends BaseRepo<Expense, IExpense> {
 		const res = await this.model
 			.find<Expense>()
 			.populate("author")
+			.populate({
+				path: "group",
+				populate: { path: "author" },
+			})
 			.sort({ createdAt: -1 });
 		const parsedRes = res.map(this.parser).filter((obj) => obj != null);
 		if (parsedRes.length > 0) return parsedRes;
@@ -53,7 +79,8 @@ class ExpenseRepo extends BaseRepo<Expense, IExpense> {
 	}
 	public async create(body: CreateModel<Expense>): Promise<IExpense> {
 		const res = await this.model.create<CreateModel<Expense>>(body);
-		return getNonNullValue(this.parser(await res.populate("author")));
+		const createdGroup = await this.findById(res.id);
+		return getNonNullValue(createdGroup);
 	}
 	public async update(
 		query: FilterQuery<Expense>,
@@ -62,14 +89,22 @@ class ExpenseRepo extends BaseRepo<Expense, IExpense> {
 		const filter = query.id ? { _id: query.id } : query;
 		const res = await this.model
 			.findOneAndUpdate<Expense>(filter, update, { new: true })
-			.populate("author");
+			.populate("author")
+			.populate({
+				path: "group",
+				populate: { path: "author" },
+			});
 		return this.parser(res);
 	}
 	public async remove(query: FilterQuery<Expense>): Promise<IExpense | null> {
 		const filter = query.id ? { _id: query.id } : query;
 		const res = await this.model
 			.findOneAndDelete<Expense>(filter)
-			.populate("author");
+			.populate("author")
+			.populate({
+				path: "group",
+				populate: { path: "author" },
+			});
 		return this.parser(res);
 	}
 }

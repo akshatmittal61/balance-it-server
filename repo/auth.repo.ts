@@ -4,9 +4,10 @@ import {
 	CreateModel,
 	FilterQuery,
 	IAuthMapping,
+	IUser,
 	UpdateQuery,
 } from "../types";
-import { getNonNullValue } from "../utils";
+import { getNonNullValue, getObjectFromMongoResponse } from "../utils";
 import { BaseRepo } from "./base";
 
 class AuthRepo extends BaseRepo<AuthMapping, IAuthMapping> {
@@ -14,7 +15,9 @@ class AuthRepo extends BaseRepo<AuthMapping, IAuthMapping> {
 	public parser(input: AuthMapping | null): IAuthMapping | null {
 		const res = super.parser(input);
 		if (!res) return null;
-		if (res.user) res.user = res?.user || null;
+		const user = getObjectFromMongoResponse<IUser>(res.user);
+		if (!user) return null;
+		res.user = user;
 		return res;
 	}
 	public async findOne(

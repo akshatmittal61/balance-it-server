@@ -1,6 +1,13 @@
 import { GroupModel } from "../models";
-import { CreateModel, FilterQuery, Group, IGroup, UpdateQuery } from "../types";
-import { getNonNullValue } from "../utils";
+import {
+	CreateModel,
+	FilterQuery,
+	Group,
+	IGroup,
+	IUser,
+	UpdateQuery,
+} from "../types";
+import { getNonNullValue, getObjectFromMongoResponse } from "../utils";
 import { BaseRepo } from "./base";
 
 class GroupRepo extends BaseRepo<Group, IGroup> {
@@ -8,6 +15,9 @@ class GroupRepo extends BaseRepo<Group, IGroup> {
 	public parser(input: Group | null): IGroup | null {
 		const res = super.parser(input);
 		if (!res) return null;
+		const author = getObjectFromMongoResponse<IUser>(res.author);
+		if (!author) return null;
+		res.author = author;
 		return res;
 	}
 	public async findOne(query: FilterQuery<Group>): Promise<IGroup | null> {
@@ -26,7 +36,10 @@ class GroupRepo extends BaseRepo<Group, IGroup> {
 	public async find(
 		query: FilterQuery<Group>
 	): Promise<Array<IGroup> | null> {
-		const res = await this.model.find<Group>(query).populate("author");
+		const res = await this.model
+			.find<Group>(query)
+			.populate("author")
+			.sort({ createdAt: -1 });
 		const parsedRes = res.map(this.parser).filter((obj) => obj != null);
 		if (parsedRes.length === 0) return null;
 		return parsedRes;
