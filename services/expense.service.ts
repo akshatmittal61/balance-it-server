@@ -297,4 +297,26 @@ export class ExpenseService {
 		}
 		return updatedExpense;
 	}
+	public static async deleteExpense({
+		expenseId,
+		loggedInUserId,
+	}: {
+		expenseId: string;
+		loggedInUserId: string;
+	}): Promise<void> {
+		const foundExpense = await ExpenseService.getExpenseById(expenseId);
+		if (!foundExpense) {
+			throw new ApiError(HTTP.status.NOT_FOUND, "Expense not found");
+		}
+		// the user can only delete expense if it is paid by the user or is a personal expense
+		if (foundExpense.author.id !== loggedInUserId) {
+			throw new ApiError(HTTP.status.UNAUTHORIZED, "Unauthorized");
+		}
+		// search for any splits for this expense
+		const splits = await splitRepo.find({ expense: expenseId });
+		if (splits) {
+			await splitRepo.bulkRemove({ expense: expenseId });
+		}
+		await expenseRepo.remove({ id: expenseId });
+	}
 }
