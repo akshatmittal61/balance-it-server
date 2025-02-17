@@ -1,4 +1,4 @@
-import { AuthService } from "../services";
+import { OAuthService } from "../services";
 import { ApiRequest, ApiResponse } from "../types";
 import {
 	ApiError,
@@ -10,7 +10,7 @@ import {
 export class AuthController {
 	public static async verifyOAuthSignIn(req: ApiRequest, res: ApiResponse) {
 		const code = genericParse(getNonEmptyString, req.body.code);
-		const oauthValidatorToken = await AuthService.verifyOAuthSignIn(code);
+		const oauthValidatorToken = await OAuthService.verifyOAuthSignIn(code);
 		return ApiSuccess(res).send(oauthValidatorToken);
 	}
 	public static async continueOAuthWithGoogle(
@@ -19,7 +19,7 @@ export class AuthController {
 	) {
 		const validatorToken = genericParse(getNonEmptyString, req.body.token);
 		const { user, accessToken, refreshToken } =
-			await AuthService.continueOAuthWithGoogle(validatorToken);
+			await OAuthService.continueOAuthWithGoogle(validatorToken);
 		res.setHeader("x-auth-access-token", accessToken);
 		res.setHeader("x-auth-refresh-token", refreshToken);
 		return ApiSuccess(res).send(user);
