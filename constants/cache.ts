@@ -11,4 +11,5 @@ export const cacheParameter = getEnumeration<CacheParameter>([
 	"EXPENSE",
 	"GROUP",
 	"MEMBER",
+	"USER_GROUPS",
 ]);

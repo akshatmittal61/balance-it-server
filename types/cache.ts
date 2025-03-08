@@ -1,1 +1,6 @@
-export type CacheParameter = "USER" | "EXPENSE" | "GROUP" | "MEMBER";
+export type CacheParameter =
+	| "USER"
+	| "EXPENSE"
+	| "GROUP"
+	| "MEMBER"
+	| "USER_GROUPS";

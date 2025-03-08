@@ -83,8 +83,12 @@ export const getCacheKey = (parameter: CacheParameter, data: any) => {
 			return `user:${data.id}`;
 		case "GROUP":
 			return `group:${data.id}`;
+		case "EXPENSE":
+			return `expense:${data.id}`;
 		case "MEMBER":
 			return `member:${data.id}`;
+		case "USER_GROUPS":
+			return `user_groups:${data.userId}`;
 		default:
 			return `cache:${parameter}:${JSON.stringify(data)}`;
 	}
