@@ -10,8 +10,8 @@ import {
 export class AuthController {
 	public static async verifyOAuthSignIn(req: ApiRequest, res: ApiResponse) {
 		const code = genericParse(getNonEmptyString, req.body.code);
-		const oauthValidatorToken = await OAuthService.verifyOAuthSignIn(code);
-		return ApiSuccess(res).send(oauthValidatorToken);
+		const data = await OAuthService.verifyOAuthSignIn(code);
+		return ApiSuccess(res).send(data);
 	}
 	public static async continueOAuthWithGoogle(
 		req: ApiRequest,
@@ -32,7 +32,8 @@ export class AuthController {
 		return ApiSuccess(res).send(user);
 	}
 	public static async logout(_: ApiRequest, res: ApiResponse) {
-		res.clearCookie("token");
+		res.clearCookie("accessToken");
+		res.clearCookie("refreshToken");
 		return ApiSuccess(res).send();
 	}
 }

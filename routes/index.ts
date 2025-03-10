@@ -11,6 +11,8 @@ router.get(
 );
 router.get("/auth/logout", authenticatedRoute, AuthController.logout);
 
-router.route("/profile").patch(UserController.updateUserProfile);
+router
+	.route("/profile")
+	.patch(authenticatedRoute, UserController.updateUserProfile);
 
 export const apiRouter = wrapper(router);
