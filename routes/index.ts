@@ -1,4 +1,8 @@
-import { AuthController, UserController } from "../controllers";
+import {
+	AuthController,
+	UserController,
+	WalletController,
+} from "../controllers";
 import { authenticatedRoute } from "../middlewares";
 import { router, wrapper } from "./base";
 
@@ -16,5 +20,9 @@ router.get("/auth/logout", authenticatedRoute, AuthController.logout);
 router
 	.route("/profile")
 	.patch(authenticatedRoute, UserController.updateUserProfile);
+
+router
+	.route("/wallet/expenses")
+	.get(authenticatedRoute, WalletController.getExpensesForUser);
 
 export const apiRouter = wrapper(router);
