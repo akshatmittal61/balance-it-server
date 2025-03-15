@@ -2,6 +2,7 @@ import {
 	T_EXPENSE_TYPE,
 	T_MEMBER_ROLE,
 	T_MEMBER_STATUS,
+	T_OTP_STATUS,
 	T_USER_STATUS,
 } from "./enum";
 import { Model } from "./parser";
@@ -38,6 +39,18 @@ export type User = Model<{
 	avatar?: string;
 	status: T_USER_STATUS;
 	invitedBy?: string;
+}>;
+
+/**
+ * Otp model
+ * @param {string} email - Email of the user
+ * @param {string} otp - OTP of the user
+ * @param {string} status - Status of the OTP (Pending, Expired)
+ */
+export type Otp = Model<{
+	email: string;
+	otp: string;
+	status: T_OTP_STATUS;
 }>;
 
 /**

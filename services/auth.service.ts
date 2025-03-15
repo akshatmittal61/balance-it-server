@@ -1,35 +1,50 @@
 import jwt, { TokenExpiredError } from "jsonwebtoken";
 import { jwtSecret } from "../config";
+import { Logger } from "../log";
 import { authRepo } from "../repo";
 import { AuthResponse, IAuthMapping, User } from "../types";
 import { genericParse, getNonEmptyString } from "../utils";
-import { UserService } from "./user.service";
 
 export class AuthService {
 	public static async findOrCreateAuthMapping(
 		email: string,
 		provider: { id: string; name: string },
-		misc?: any
+		userId: string | null,
+		misc: any = {}
 	): Promise<IAuthMapping> {
-		const foundAuthMapping = await authRepo.findOne({ identifier: email });
+		Logger.debug("Finding or creating auth mapping", {
+			email,
+			provider,
+			misc,
+		});
+		const foundAuthMapping = await authRepo.findOne({
+			identifier: email,
+			providerName: provider.name,
+		});
+		Logger.debug("Found auth mapping", foundAuthMapping);
 		if (foundAuthMapping) {
 			return foundAuthMapping;
 		}
-		return await authRepo.create({
+		const createdAuthMapping = await authRepo.create({
 			identifier: email,
 			providerName: provider.name,
 			providerId: provider.id,
 			misc: JSON.stringify(misc),
-			user: null,
+			user: userId,
 		});
+		Logger.debug("Created auth mapping", createdAuthMapping);
+		return createdAuthMapping;
 	}
 	public static async getUserByAuthMappingId(
 		authMappingId: string
 	): Promise<User | null> {
 		const foundAuthMapping = await authRepo.findById(authMappingId);
+		Logger.debug(
+			"Found auth mapping in getUserByAuthMappingId",
+			foundAuthMapping
+		);
 		if (!foundAuthMapping) return null;
-		const userId = genericParse(getNonEmptyString, foundAuthMapping.user);
-		return await UserService.getUserById(userId);
+		return foundAuthMapping.user;
 	}
 	public static async getAuthenticatedUser({
 		accessToken,
@@ -40,13 +55,16 @@ export class AuthService {
 				accessToken,
 				jwtSecret.authAccess
 			);
+			Logger.debug("Decoded access token", decodedAccessToken);
 			const authMappingId = genericParse(
 				getNonEmptyString,
 				decodedAccessToken.id
 			);
+			Logger.debug("Auth mapping id", authMappingId);
 			const user =
 				await AuthService.getUserByAuthMappingId(authMappingId);
 			if (!user) return null;
+			Logger.debug("Found user", user);
 			return {
 				user,
 				accessToken,
@@ -62,13 +80,16 @@ export class AuthService {
 				refreshToken,
 				jwtSecret.authRefresh
 			);
+			Logger.debug("Decoded refresh token", decodedRefreshToken);
 			const authMappingId = genericParse(
 				getNonEmptyString,
 				decodedRefreshToken.id
 			);
+			Logger.debug("Auth mapping id", authMappingId);
 			const user =
 				await AuthService.getUserByAuthMappingId(authMappingId);
 			if (!user) return null;
+			Logger.debug("Found user", user);
 			const newAccessToken =
 				AuthService.generateAccessToken(authMappingId);
 			return {

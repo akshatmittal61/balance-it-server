@@ -11,6 +11,7 @@ export const authenticatedRoute = async (
 	next: NextFunction
 ) => {
 	try {
+		Logger.debug("Authenticating user", req.cookies);
 		const accessToken = genericParse(
 			getNonEmptyString,
 			req.cookies.accessToken
@@ -19,6 +20,10 @@ export const authenticatedRoute = async (
 			getNonEmptyString,
 			req.cookies.refreshToken
 		);
+		Logger.debug("Authenticating user tokens", {
+			accessToken,
+			refreshToken,
+		});
 		const authReponse = await AuthService.getAuthenticatedUser({
 			accessToken,
 			refreshToken,
@@ -29,6 +34,7 @@ export const authenticatedRoute = async (
 				HTTP.status.UNAUTHORIZED
 			);
 		}
+		Logger.debug("Authenticated user", authReponse);
 		const {
 			user,
 			accessToken: newAccessToken,

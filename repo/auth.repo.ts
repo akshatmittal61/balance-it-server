@@ -1,3 +1,4 @@
+import { Logger } from "../log";
 import { AuthMappingModel } from "../models";
 import {
 	AuthMapping,
@@ -16,16 +17,17 @@ class AuthRepo extends BaseRepo<AuthMapping, IAuthMapping> {
 		const res = super.parser(input);
 		if (!res) return null;
 		const user = getObjectFromMongoResponse<IUser>(res.user);
-		if (!user) return null;
 		res.user = user;
 		return res;
 	}
 	public async findOne(
 		query: FilterQuery<AuthMapping>
 	): Promise<IAuthMapping | null> {
+		Logger.debug("Finding one auth mapping", query);
 		const res = await this.model
 			.findOne<AuthMapping>(query)
 			.populate("user");
+		Logger.debug("Found one auth mapping", res);
 		return this.parser(res);
 	}
 	public async findById(id: string): Promise<IAuthMapping | null> {

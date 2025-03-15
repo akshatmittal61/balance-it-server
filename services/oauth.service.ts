@@ -9,6 +9,7 @@ import { AuthResponse } from "../types";
 import { genericParse, getNonEmptyString, safeParse } from "../utils";
 import { AuthService } from "./auth.service";
 import { UserService } from "./user.service";
+import { Logger } from "../log";
 
 const client = new OAuth2Client();
 
@@ -40,7 +41,9 @@ export class OAuthService {
 		return payload;
 	}
 	public static async verifyOAuthSignIn(code: string): Promise<string> {
+		Logger.debug("Verifying OAuth sign in", code);
 		const { id_token } = await OAuthService.verifyOAuthRequestByCode(code);
+		Logger.debug("Verified OAuth id token", id_token);
 		const userFromOAuth = await OAuthService.fetchUserFromIdToken(id_token);
 		if (!userFromOAuth) {
 			throw new ApiError(
@@ -48,20 +51,24 @@ export class OAuthService {
 				"Auth failed, please try again or contact support"
 			);
 		}
+		Logger.debug("User from OAuth", userFromOAuth);
 		const email = genericParse(getNonEmptyString, userFromOAuth.email);
 		const name = safeParse(getNonEmptyString, userFromOAuth.name) || "";
 		const picture = userFromOAuth.picture;
-		const authMapping = await AuthService.findOrCreateAuthMapping(
-			email,
-			{ id: userFromOAuth.sub, name: "google" },
-			{ name, avatar: picture }
-		);
 		const { user, isNew } = await UserService.findOrCreateUser({
 			name,
 			email,
 			avatar: picture || fallbackAssets.avatar,
 			status: USER_STATUS.JOINED,
 		});
+		Logger.debug("Found or created user", { user, isNew });
+		const authMapping = await AuthService.findOrCreateAuthMapping(
+			email,
+			{ id: userFromOAuth.sub, name: "google" },
+			user.id,
+			{ name, avatar: picture }
+		);
+		Logger.debug("Found or created auth mapping", authMapping);
 		if (isNew || !authMapping.user || authMapping.user.id !== user.id) {
 			await authRepo.update({ id: authMapping.id }, { user: user.id });
 		}
@@ -70,6 +77,7 @@ export class OAuthService {
 			jwtSecret.oauthValidator,
 			{ expiresIn: "1m" }
 		);
+		Logger.debug("Generated validator token", oauthValidatorToken);
 		return oauthValidatorToken;
 	}
 	public static async continueOAuthWithGoogle(
@@ -79,16 +87,11 @@ export class OAuthService {
 			validatorToken,
 			jwtSecret.oauthValidator
 		);
+		Logger.debug("Decoded validator token", decodedToken);
 		const authMappingId = genericParse(getNonEmptyString, decodedToken.id);
 		const foundAuthMapping = await authRepo.findById(authMappingId);
+		Logger.debug("Found auth mapping", foundAuthMapping);
 		if (!foundAuthMapping || !foundAuthMapping.user) {
-			throw new ApiError(
-				HTTP.status.BAD_REQUEST,
-				"Auth failed, please try again or contact support"
-			);
-		}
-		const user = await UserService.getUserById(foundAuthMapping.user.id);
-		if (!user) {
 			throw new ApiError(
 				HTTP.status.BAD_REQUEST,
 				"Auth failed, please try again or contact support"
@@ -97,6 +100,7 @@ export class OAuthService {
 		const { accessToken, refreshToken } = AuthService.generateTokens(
 			`${foundAuthMapping.id}`
 		);
-		return { accessToken, refreshToken, user };
+		Logger.debug("Generated tokens", { accessToken, refreshToken });
+		return { accessToken, refreshToken, user: foundAuthMapping.user };
 	}
 }

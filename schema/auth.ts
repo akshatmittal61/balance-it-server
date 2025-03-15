@@ -4,7 +4,6 @@ export const AuthMappingSchema = {
 	identifier: {
 		type: String,
 		required: true,
-		unique: true,
 	},
 	providerName: {
 		type: String,
