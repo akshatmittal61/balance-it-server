@@ -20,7 +20,8 @@ export const ExpenseSchema = {
 		required: true,
 	},
 	group: {
-		type: String,
+		type: mongoose.Schema.Types.ObjectId,
+		ref: "Group",
 		required: false,
 	},
 	tags: {

@@ -1,6 +1,7 @@
 import { cache, getCacheKey } from "../cache";
 import { cacheParameter, HTTP } from "../constants";
 import { ApiError } from "../errors";
+import { Logger } from "../log";
 import { expenseRepo, groupRepo, memberRepo, splitRepo } from "../repo";
 import {
 	CreateModel,
@@ -40,6 +41,7 @@ export class ExpenseService {
 	): Promise<IExpense> {
 		// --- Validations ---
 		const foundAuthor = await UserService.getUserById(body.author);
+		Logger.debug("Found author", foundAuthor);
 		if (!foundAuthor) {
 			throw new ApiError(HTTP.status.NOT_FOUND, "User not found");
 		}

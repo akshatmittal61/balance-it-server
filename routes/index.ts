@@ -23,6 +23,7 @@ router
 
 router
 	.route("/wallet/expenses")
-	.get(authenticatedRoute, WalletController.getExpensesForUser);
+	.get(authenticatedRoute, WalletController.getExpensesForUser)
+	.post(authenticatedRoute, WalletController.createExpense);
 
 export const apiRouter = wrapper(router);
