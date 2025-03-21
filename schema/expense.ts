@@ -16,8 +16,7 @@ export const ExpenseSchema = {
 		required: true,
 	},
 	timestamp: {
-		type: String,
-		required: true,
+		type: Date,
 	},
 	group: {
 		type: mongoose.Schema.Types.ObjectId,
