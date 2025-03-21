@@ -25,5 +25,8 @@ router
 	.route("/wallet/expenses")
 	.get(authenticatedRoute, WalletController.getExpensesForUser)
 	.post(authenticatedRoute, WalletController.createExpense);
+router
+	.route("/wallet/expenses/summary")
+	.get(authenticatedRoute, WalletController.getExpensesSummary);
 
 export const apiRouter = wrapper(router);

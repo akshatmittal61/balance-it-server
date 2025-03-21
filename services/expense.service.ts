@@ -1,5 +1,5 @@
 import { cache, getCacheKey } from "../cache";
-import { cacheParameter, HTTP } from "../constants";
+import { cacheParameter, EXPENSE_TYPE, HTTP } from "../constants";
 import { ApiError } from "../errors";
 import { Logger } from "../log";
 import { expenseRepo, groupRepo, memberRepo, splitRepo } from "../repo";
@@ -33,6 +33,22 @@ export class ExpenseService {
 		return await cache.fetch(cacheKey, () =>
 			expenseRepo.findById(expenseId)
 		);
+	}
+	public static async getExpensesSummary(userId: string): Promise<{
+		paid: number;
+		received: number;
+	}> {
+		const expenses = await ExpenseService.getUserExpenses(userId);
+		const totalPaidAmount = expenses
+			.filter((exp) => exp.type === EXPENSE_TYPE.PAID)
+			.reduce((acc, exp) => acc + exp.amount, 0);
+		const totalReceivedAmount = expenses
+			.filter((exp) => exp.type === EXPENSE_TYPE.RECEIVED)
+			.reduce((acc, exp) => acc + exp.amount, 0);
+		return {
+			paid: totalPaidAmount,
+			received: totalReceivedAmount,
+		};
 	}
 	public static async createExpense(
 		body: CreateModel<Expense>,

@@ -59,7 +59,8 @@ class ExpenseRepo extends BaseRepo<Expense, IExpense> {
 			.populate({
 				path: "group",
 				populate: { path: "author" },
-			});
+			})
+			.sort({ createdAt: -1 });
 		const parsedRes = res.map(this.parser).filter((obj) => obj != null);
 		if (parsedRes.length === 0) return null;
 		return parsedRes;
