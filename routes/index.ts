@@ -22,6 +22,13 @@ router
 	.patch(authenticatedRoute, UserController.updateUserProfile);
 
 router
+	.route("/users/invite")
+	.post(authenticatedRoute, UserController.inviteUser);
+router
+	.route("/users/search")
+	.post(authenticatedRoute, UserController.searchForUsers);
+
+router
 	.route("/wallet/expenses")
 	.get(authenticatedRoute, WalletController.getExpensesForUser)
 	.post(authenticatedRoute, WalletController.createExpense);

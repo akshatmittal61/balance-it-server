@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { fallbackAssets, USER_STATUS } from "../constants";
 
 export const UserSchema = {
@@ -30,6 +31,8 @@ export const UserSchema = {
 		default: USER_STATUS.JOINED,
 	},
 	invitedBy: {
-		type: String,
+		type: mongoose.Schema.Types.ObjectId,
+		ref: "User",
+		sparse: true,
 	},
 };

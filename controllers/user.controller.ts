@@ -25,4 +25,22 @@ export class UserController {
 		const user = await UserService.updateUserProfile(userId, body);
 		return ApiSuccess(res).send(user);
 	}
+	public static async inviteUser(req: ApiRequest, res: ApiResponse) {
+		const loggedInUserId = genericParse<string>(
+			getNonEmptyString,
+			req.user?.id
+		);
+		const invitee = genericParse<string>(getNonEmptyString, req.body.email);
+		const invitedUser = await UserService.inviteUser(
+			loggedInUserId,
+			invitee
+		);
+		return ApiSuccess(res).send(invitedUser);
+	}
+
+	public static async searchForUsers(req: ApiRequest, res: ApiResponse) {
+		const query = genericParse(getNonEmptyString, req.body.query);
+		const users = await UserService.searchByEmail(query);
+		return ApiSuccess(res).send(users);
+	}
 }
