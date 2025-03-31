@@ -47,6 +47,7 @@ export const authenticatedRoute = async (
 			res.setHeader("x-auth-refresh-token", newRefreshToken);
 		}
 		req.user = user;
+		Logger.info("Authenticated user", user);
 		return next();
 	} catch (error: any) {
 		Logger.error(error);

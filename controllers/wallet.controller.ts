@@ -41,4 +41,13 @@ export class WalletController {
 			HTTP.status.CREATED
 		);
 	}
+	public static async deleteExpense(req: ApiRequest, res: ApiResponse) {
+		const userId = genericParse(getNonEmptyString, req.user?.id);
+		const expenseId = genericParse(getNonEmptyString, req.params.id);
+		const data = await ExpenseService.deleteExpense({
+			expenseId,
+			loggedInUserId: userId,
+		});
+		return ApiSuccess(res).send(data);
+	}
 }

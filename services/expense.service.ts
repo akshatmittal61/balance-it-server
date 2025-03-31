@@ -332,20 +332,19 @@ export class ExpenseService {
 	}: {
 		expenseId: string;
 		loggedInUserId: string;
-	}): Promise<void> {
+	}): Promise<boolean> {
 		const foundExpense = await ExpenseService.getExpenseById(expenseId);
 		if (!foundExpense) {
 			throw new ApiError(HTTP.status.NOT_FOUND, "Expense not found");
 		}
 		// the user can only delete expense if it is paid by the user or is a personal expense
 		if (foundExpense.author.id !== loggedInUserId) {
-			throw new ApiError(HTTP.status.UNAUTHORIZED, "Unauthorized");
+			throw new ApiError(HTTP.status.FORBIDDEN, "You cannot delete this");
 		}
 		// search for any splits for this expense
-		const splits = await splitRepo.find({ expense: expenseId });
-		if (splits) {
-			await splitRepo.bulkRemove({ expense: expenseId });
-		}
-		await expenseRepo.remove({ id: expenseId });
+		await splitRepo.bulkRemove({ expense: expenseId });
+		const expense = await expenseRepo.remove({ id: expenseId });
+		cache.del(getCacheKey(cacheParameter.EXPENSE, { id: expenseId }));
+		return expense !== null;
 	}
 }

@@ -16,5 +16,5 @@ export type ISplit = Omit<Split, "expense" | "user"> & {
 	user: IUser;
 };
 export type ExpenseSpread = IExpense & {
-	splits?: Array<ISplit>;
+	splits?: Array<Omit<ISplit, "expense">>;
 };

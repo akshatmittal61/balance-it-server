@@ -14,7 +14,6 @@ export const OTP_STATUS = getEnumeration<T_OTP_STATUS>(["PENDING", "EXPIRED"]);
 export const EXPENSE_TYPE = getEnumeration<T_EXPENSE_TYPE>([
 	"PAID",
 	"RECEIVED",
-	"CASHBACK",
 	"SELF",
 ]);
 

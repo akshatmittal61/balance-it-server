@@ -36,6 +36,9 @@ router
 	.get(authenticatedRoute, WalletController.getExpensesForUser)
 	.post(authenticatedRoute, WalletController.createExpense);
 router
+	.route("/wallet/expenses/:id")
+	.delete(authenticatedRoute, WalletController.deleteExpense);
+router
 	.route("/wallet/expenses/summary")
 	.get(authenticatedRoute, WalletController.getExpensesSummary);
 

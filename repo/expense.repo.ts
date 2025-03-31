@@ -6,6 +6,7 @@ import {
 	FilterQuery,
 	IExpense,
 	IGroup,
+	ISplit,
 	IUser,
 	ObjectId,
 	UpdateQuery,
@@ -23,6 +24,17 @@ class ExpenseRepo extends BaseRepo<Expense, IExpense> {
 		res.author = author;
 		const group = getObjectFromMongoResponse<IGroup>(res.group);
 		if (group) res.group = group;
+		return res;
+	}
+	public parseSpread(input: ExpenseSpread | null): ExpenseSpread | null {
+		const res = getObjectFromMongoResponse<ExpenseSpread>(input);
+		if (!res) return null;
+		const splits =
+			res?.splits
+				?.map(getObjectFromMongoResponse<Omit<ISplit, "expense">>)
+				.filter(getNonNullValue) || [];
+		res.splits = splits.map(getNonNullValue);
+		res.author = getObjectFromMongoResponse<IUser>(res.author)!;
 		return res;
 	}
 	public async findOne(
@@ -113,7 +125,7 @@ class ExpenseRepo extends BaseRepo<Expense, IExpense> {
 	public async findByIdWithSplits(id: string): Promise<ExpenseSpread | null> {
 		const res = await this.findWithSplits({ _id: new ObjectId(id) });
 		if (res.length === 0) return null;
-		return res[0];
+		return this.parseSpread(res[0]);
 	}
 	public async findWithSplits(
 		query: FilterQuery<Expense>
