@@ -25,7 +25,7 @@ import { UserService } from "./user.service";
 export class ExpenseService {
 	public static async getUserExpenses(
 		userId: string
-	): Promise<Array<IExpense>> {
+	): Promise<Array<ExpenseSpread>> {
 		const expenses = await expenseRepo.findWithSplits({
 			author: new ObjectId(userId),
 		});
@@ -65,7 +65,7 @@ export class ExpenseService {
 		body: CreateModel<Expense>,
 		userId: string,
 		splits?: Array<{ user: string; amount: number }>
-	): Promise<IExpense> {
+	): Promise<ExpenseSpread> {
 		// --- Validations ---
 		const foundAuthor = await UserService.getUserById(body.author);
 		Logger.debug("Found author", foundAuthor);
@@ -347,12 +347,5 @@ export class ExpenseService {
 			await splitRepo.bulkRemove({ expense: expenseId });
 		}
 		await expenseRepo.remove({ id: expenseId });
-	}
-	public static async temp(userId: string): Promise<Array<ExpenseSpread>> {
-		Logger.debug("Getting all expenses for ", userId);
-		const expenses = await expenseRepo.findWithSplits({
-			author: new ObjectId(userId),
-		});
-		return expenses;
 	}
 }
