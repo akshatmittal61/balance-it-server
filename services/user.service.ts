@@ -6,15 +6,23 @@ import {
 	USER_STATUS,
 } from "../constants";
 import { ApiError } from "../errors";
+import { Logger } from "../log";
 import { userRepo } from "../repo";
-import { CreateModel, IUser, UpdateUser, User } from "../types";
+import { CollectionUser, CreateModel, IUser, UpdateUser, User } from "../types";
 import { genericParse, getNonEmptyString } from "../utils";
-import { sendEmailTemplate } from "./email";
+import { sendBulkEmailTemplate, sendEmailTemplate } from "./email";
 
 export class UserService {
 	public static async getUserById(id: string): Promise<IUser | null> {
 		const cacheKey = getCacheKey(cacheParameter.USER, { id });
 		return await cache.fetch(cacheKey, () => userRepo.findById(id));
+	}
+	public static async getUserByEmail(email: string): Promise<IUser | null> {
+		try {
+			return await userRepo.findOne({ email });
+		} catch {
+			return null;
+		}
 	}
 	public static async findOrCreateUser(
 		body: CreateModel<User>
@@ -102,5 +110,153 @@ export class UserService {
 			invitedBy: invitedByUserId,
 		});
 		return createdUser;
+	}
+	public static async inviteMany(emails: string[], invitedByUser: IUser) {
+		await userRepo.bulkCreate(
+			emails.map((email) => ({
+				name: email.split("@")[0],
+				email,
+				status: USER_STATUS.INVITED,
+				invitedBy: invitedByUser.id,
+			}))
+		);
+		await sendBulkEmailTemplate(
+			emails,
+			"Invite to Balance It",
+			emailTemplates.USER_INVITED,
+			{
+				invitedBy: {
+					email: invitedByUser?.email,
+					name: invitedByUser?.name,
+				},
+			}
+		);
+	}
+	private static isValidEmail(email: string): boolean {
+		const emailRegex = /^[\w.%+-]+@[\w.-]+\.[a-zA-Z]{2,}$/;
+		return emailRegex.test(email);
+	}
+	private static capitalizeName(name: string): string {
+		return name
+			.split(/\s+/)
+			.map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+			.join(" ");
+	}
+	private static getDistinctUsersFromCollection = (
+		users: Array<CollectionUser>
+	) => {
+		const m = new Map();
+		users.forEach((user) => {
+			if (m.has(user.email)) {
+				const us = m.get(user.email);
+				m.set(user.email, [...us, user.name]);
+			} else {
+				m.set(user.email, [user.name]);
+			}
+		});
+		const finals: Array<CollectionUser> = [];
+		m.forEach((value, key) => {
+			const email = key;
+			let name = value[0];
+			if (value.length === 0) {
+				name = UserService.capitalizeName(email.split("@")[0]);
+			} else if (value.length === 1) {
+				name = value[0];
+			} else {
+				for (const v of value) {
+					if (v.length > name.length) {
+						name = v;
+					}
+				}
+			}
+			finals.push({ name, email });
+		});
+		return finals;
+	};
+	private static parseBulkEmailInput(value: string): Array<CollectionUser> {
+		const a = value
+			.split(",")
+			.map((a) => a.split(";"))
+			.flat()
+			.map((a) => a.trim());
+		const valids = a
+			.map((e) => {
+				const r = /^([^<]+)?<([\w.%+-]+@[\w.-]+\.[a-zA-Z]{2,})>$/;
+				const f = e.match(r);
+				if (f) {
+					const email = f?.[2]?.trim();
+					if (!UserService.isValidEmail(email)) {
+						return null;
+					}
+					const trimmedName = f?.[1]?.trim() || email?.split("@")[0];
+					const obj = {
+						name: UserService.capitalizeName(trimmedName),
+						email,
+					};
+					return obj;
+				} else {
+					const potentialEmails = e.split(/[;,\s]+/);
+					const result = [];
+
+					for (const item of potentialEmails) {
+						let name = null;
+						let email = null;
+						if (UserService.isValidEmail(item)) {
+							email = item.trim();
+						}
+
+						if (email) {
+							name = name || email.split("@")[0];
+
+							result.push({
+								name: UserService.capitalizeName(name),
+								email: email,
+							});
+						}
+					}
+					return result;
+				}
+			})
+			.flat()
+			.filter((f) => f != null);
+		return UserService.getDistinctUsersFromCollection(valids);
+	}
+	public static async searchInBulk(
+		query: string,
+		invitee: IUser
+	): Promise<{
+		users: Array<IUser>;
+		message: string;
+	}> {
+		const usersFromQuery = UserService.parseBulkEmailInput(query);
+		Logger.debug("usersFromQuery", usersFromQuery, invitee);
+		const emails = usersFromQuery.map((user) => user.email);
+		Logger.debug("emails", emails);
+		const users = await Promise.all(emails.map(UserService.getUserByEmail));
+		const allFoundUsers = users.filter((user) => user !== null);
+		const nonFoundUsers = emails.filter(
+			(email) => !allFoundUsers.find((user) => user.email === email)
+		);
+		if (nonFoundUsers.length > 0) {
+			Logger.debug("nonFoundUsers", nonFoundUsers);
+			await UserService.inviteMany(nonFoundUsers, invitee);
+		}
+		const newUsersCollection = await Promise.all(
+			emails.map(UserService.getUserByEmail)
+		);
+		const finalCollection = newUsersCollection.filter(
+			(user) => user !== null
+		);
+		if (!finalCollection.map((a) => a.email).includes(invitee.email)) {
+			finalCollection.push(invitee);
+		}
+		const message =
+			nonFoundUsers.length > 0
+				? `Invited ${nonFoundUsers.length} users`
+				: "";
+		return {
+			users: finalCollection,
+			message,
+		};
 	}
 }

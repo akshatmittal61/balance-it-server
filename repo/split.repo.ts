@@ -45,11 +45,8 @@ class SplitRepo extends BaseRepo<Split, ISplit> {
 				.populate({
 					path: "expense",
 					populate: {
-						path: "author",
-						populate: {
-							path: "group",
-							populate: { path: "author" },
-						},
+						path: "group",
+						populate: { path: "author" },
 					},
 				});
 			return this.parser(res);
@@ -63,17 +60,14 @@ class SplitRepo extends BaseRepo<Split, ISplit> {
 	): Promise<Array<ISplit> | null> {
 		const res = await this.model
 			.find(query)
+			.populate("user")
 			.populate({
 				path: "expense",
-				populate: [
-					{ path: "author" },
-					{
-						path: "group",
-						populate: { path: "author" },
-					},
-				],
-			})
-			.populate("user");
+				populate: {
+					path: "group",
+					populate: { path: "author" },
+				},
+			});
 		const parsedRes = res.map(this.parser).filter((obj) => obj != null);
 		if (parsedRes.length === 0) return null;
 		return parsedRes;
@@ -81,17 +75,14 @@ class SplitRepo extends BaseRepo<Split, ISplit> {
 	public async findAll(): Promise<Array<ISplit>> {
 		const res = await this.model
 			.find<Split>()
+			.populate("user")
 			.populate({
 				path: "expense",
-				populate: [
-					{ path: "author" },
-					{
-						path: "group",
-						populate: { path: "author" },
-					},
-				],
+				populate: {
+					path: "group",
+					populate: { path: "author" },
+				},
 			})
-			.populate("user")
 			.sort({ createdAt: -1 });
 		const parsedRes = res.map(this.parser).filter((obj) => obj != null);
 		if (parsedRes.length > 0) return parsedRes;
@@ -109,34 +100,28 @@ class SplitRepo extends BaseRepo<Split, ISplit> {
 		const filter = query.id ? { _id: query.id } : query;
 		const res = await this.model
 			.findOneAndUpdate<Split>(filter, update, { new: true })
+			.populate("user")
 			.populate({
 				path: "expense",
-				populate: [
-					{ path: "author" },
-					{
-						path: "group",
-						populate: { path: "author" },
-					},
-				],
-			})
-			.populate("user");
+				populate: {
+					path: "group",
+					populate: { path: "author" },
+				},
+			});
 		return this.parser(res);
 	}
 	public async remove(query: FilterQuery<Split>): Promise<ISplit | null> {
 		const filter = query.id ? { _id: query.id } : query;
 		const res = await this.model
 			.findOneAndDelete<Split>(filter)
+			.populate("user")
 			.populate({
 				path: "expense",
-				populate: [
-					{ path: "author" },
-					{
-						path: "group",
-						populate: { path: "author" },
-					},
-				],
-			})
-			.populate("user");
+				populate: {
+					path: "group",
+					populate: { path: "author" },
+				},
+			});
 		return this.parser(res);
 	}
 	public async bulkCreate(

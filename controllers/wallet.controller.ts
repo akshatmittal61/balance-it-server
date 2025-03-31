@@ -2,7 +2,13 @@ import { HTTP } from "../constants";
 import { Logger } from "../log";
 import { ExpenseService } from "../services";
 import { ApiRequest, ApiResponse } from "../types";
-import { ApiSuccess, genericParse, getNonEmptyString } from "../utils";
+import {
+	ApiSuccess,
+	genericParse,
+	getArray,
+	getNonEmptyString,
+	safeParse,
+} from "../utils";
 
 export class WalletController {
 	public static async getExpensesForUser(req: ApiRequest, res: ApiResponse) {
@@ -19,7 +25,16 @@ export class WalletController {
 		const userId = genericParse(getNonEmptyString, req.user?.id);
 		const payload = req.body;
 		Logger.debug("Creating expense", payload);
-		const created = await ExpenseService.createExpense(payload, userId);
+		const splits = safeParse(
+			getArray<{ user: string; amount: number }>,
+			payload.splits
+		);
+		const created = await ExpenseService.createExpense(
+			payload,
+			userId,
+			splits || []
+		);
+		Logger.debug("Created expense", created);
 		return ApiSuccess(res).send(
 			created,
 			HTTP.message.SUCCESS,

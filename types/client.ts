@@ -2,6 +2,7 @@ import { AuthMapping, Expense, Group, Member, Split, User } from "./models";
 import { UpdateModel } from "./parser";
 
 export type IUser = User;
+export type CollectionUser = { name: string; email: string };
 export type UpdateUser = Omit<UpdateModel<User>, "email">;
 export type IAuthMapping = Omit<AuthMapping, "user"> & { user: IUser | null };
 export type IMember = Omit<Member, "user"> & { user: IUser };

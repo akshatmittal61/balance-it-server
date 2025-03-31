@@ -3,6 +3,7 @@ import { HTTP } from "../constants";
 import { ApiError, DbConnectionError, ParserSafetyError } from "../errors";
 import { ApiRequest, ApiResponse } from "../types";
 import { ApiError as ApiFailure } from "../utils";
+import { Logger } from "../log";
 
 export const errorHandler = (
 	error: any,
@@ -10,6 +11,7 @@ export const errorHandler = (
 	res: ApiResponse,
 	next: NextFunction
 ) => {
+	Logger.error("Error", error);
 	if (res.headersSent) {
 		next(error);
 		return;

@@ -27,6 +27,9 @@ router
 router
 	.route("/users/search")
 	.post(authenticatedRoute, UserController.searchForUsers);
+router
+	.route("/users/search/bulk")
+	.post(authenticatedRoute, UserController.searchInBulk);
 
 router
 	.route("/wallet/expenses")

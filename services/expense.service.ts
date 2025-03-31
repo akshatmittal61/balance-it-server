@@ -2,7 +2,13 @@ import { cache, getCacheKey } from "../cache";
 import { cacheParameter, EXPENSE_TYPE, HTTP } from "../constants";
 import { ApiError } from "../errors";
 import { Logger } from "../log";
-import { expenseRepo, groupRepo, memberRepo, splitRepo } from "../repo";
+import {
+	expenseRepo,
+	groupRepo,
+	memberRepo,
+	splitRepo,
+	userRepo,
+} from "../repo";
 import {
 	CreateModel,
 	Expense,
@@ -109,11 +115,10 @@ export class ExpenseService {
 			}
 			// check if the users exist
 			const users = splits.map((split) => split.user);
-			const foundMembers = await memberRepo.find({
-				user: { $in: users },
-			});
-			if (!foundMembers) {
-				throw new ApiError(HTTP.status.NOT_FOUND, "Members not found");
+			const foundUsers = await userRepo.find({ _id: { $in: users } });
+			Logger.debug("Found users", users, foundUsers);
+			if (!foundUsers) {
+				throw new ApiError(HTTP.status.NOT_FOUND, "Users not found");
 			}
 			// check if everyone in the splits has some amount
 			if (splits.some((split) => split.amount <= 0)) {

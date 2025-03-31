@@ -5,6 +5,7 @@ import {
 	ApiSuccess,
 	genericParse,
 	getNonEmptyString,
+	getNonNullValue,
 	getString,
 	safeParse,
 } from "../utils";
@@ -41,6 +42,12 @@ export class UserController {
 	public static async searchForUsers(req: ApiRequest, res: ApiResponse) {
 		const query = genericParse(getNonEmptyString, req.body.query);
 		const users = await UserService.searchByEmail(query);
+		return ApiSuccess(res).send(users);
+	}
+	public static async searchInBulk(req: ApiRequest, res: ApiResponse) {
+		const query = genericParse(getNonEmptyString, req.body.query);
+		const invitee = getNonNullValue(req.user);
+		const users = await UserService.searchInBulk(query, invitee);
 		return ApiSuccess(res).send(users);
 	}
 }

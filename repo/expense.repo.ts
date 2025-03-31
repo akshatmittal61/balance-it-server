@@ -80,8 +80,8 @@ class ExpenseRepo extends BaseRepo<Expense, IExpense> {
 	}
 	public async create(body: CreateModel<Expense>): Promise<IExpense> {
 		const res = await this.model.create<CreateModel<Expense>>(body);
-		const createdGroup = await this.findById(res.id);
-		return getNonNullValue(createdGroup);
+		const createdExpense = await this.findById(res.id);
+		return getNonNullValue(createdExpense);
 	}
 	public async update(
 		query: FilterQuery<Expense>,
