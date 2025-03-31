@@ -39,4 +39,6 @@ router
 	.route("/wallet/expenses/summary")
 	.get(authenticatedRoute, WalletController.getExpensesSummary);
 
+router.get("/temp", authenticatedRoute, WalletController.temp);
+
 export const apiRouter = wrapper(router);

@@ -12,18 +12,23 @@ import {
 import {
 	CreateModel,
 	Expense,
+	ExpenseSpread,
 	IExpense,
+	ObjectId,
 	Split,
 	T_EXPENSE_TYPE,
 	UpdateQuery,
 } from "../types";
+import { getNonNullValue } from "../utils";
 import { UserService } from "./user.service";
 
 export class ExpenseService {
 	public static async getUserExpenses(
 		userId: string
 	): Promise<Array<IExpense>> {
-		const expenses = await expenseRepo.find({ author: userId });
+		const expenses = await expenseRepo.findWithSplits({
+			author: new ObjectId(userId),
+		});
 		return expenses || [];
 	}
 	public static async getGroupExpenses(
@@ -37,7 +42,7 @@ export class ExpenseService {
 	): Promise<IExpense | null> {
 		const cacheKey = getCacheKey(cacheParameter.EXPENSE, { id: expenseId });
 		return await cache.fetch(cacheKey, () =>
-			expenseRepo.findById(expenseId)
+			expenseRepo.findByIdWithSplits(expenseId)
 		);
 	}
 	public static async getExpensesSummary(userId: string): Promise<{
@@ -102,7 +107,8 @@ export class ExpenseService {
 				);
 			}
 		}
-		if (splits) {
+		if (splits && splits.length > 0) {
+			Logger.debug("Splits", splits);
 			// check if the amount is distributed correctly
 			const distributedAmounts = splits.reduce((acc, split) => {
 				return acc + split.amount;
@@ -144,7 +150,7 @@ export class ExpenseService {
 			);
 			await splitRepo.bulkCreate(splitsToCreate);
 		}
-		return expense;
+		return getNonNullValue(await this.getExpenseById(expense.id));
 	}
 	public static async updateExpense({
 		expenseId,
@@ -341,5 +347,12 @@ export class ExpenseService {
 			await splitRepo.bulkRemove({ expense: expenseId });
 		}
 		await expenseRepo.remove({ id: expenseId });
+	}
+	public static async temp(userId: string): Promise<Array<ExpenseSpread>> {
+		Logger.debug("Getting all expenses for ", userId);
+		const expenses = await expenseRepo.findWithSplits({
+			author: new ObjectId(userId),
+		});
+		return expenses;
 	}
 }

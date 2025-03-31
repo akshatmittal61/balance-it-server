@@ -41,4 +41,10 @@ export class WalletController {
 			HTTP.status.CREATED
 		);
 	}
+	public static async temp(req: ApiRequest, res: ApiResponse) {
+		const userId = genericParse(getNonEmptyString, req.user?.id);
+		Logger.debug("User", req.user);
+		const ans = await ExpenseService.temp(userId);
+		return ApiSuccess(res).send(ans);
+	}
 }
