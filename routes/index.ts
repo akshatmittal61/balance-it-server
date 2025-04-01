@@ -30,6 +30,9 @@ router
 router
 	.route("/users/search/bulk")
 	.post(authenticatedRoute, UserController.searchInBulk);
+router
+	.route("/users/friends")
+	.get(authenticatedRoute, UserController.getUserFriends);
 
 router
 	.route("/wallet/expenses")

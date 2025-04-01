@@ -7,8 +7,15 @@ import {
 } from "../constants";
 import { ApiError } from "../errors";
 import { Logger } from "../log";
-import { userRepo } from "../repo";
-import { CollectionUser, CreateModel, IUser, UpdateUser, User } from "../types";
+import { splitRepo, userRepo } from "../repo";
+import {
+	CollectionUser,
+	CreateModel,
+	Friend,
+	IUser,
+	UpdateUser,
+	User,
+} from "../types";
 import { genericParse, getNonEmptyString } from "../utils";
 import { sendBulkEmailTemplate, sendEmailTemplate } from "./email";
 
@@ -142,6 +149,28 @@ export class UserService {
 			.map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
 			.join(" ");
 	}
+	private static getDistinctFriends(users: Array<IUser>): Array<Friend> {
+		const m = new Map<string, Friend>();
+		users.forEach((user) => {
+			if (!m.has(user.id)) {
+				m.set(user.id, {
+					...user,
+					strings: 1,
+				});
+			} else {
+				const currState = m.get(user.id)!;
+				m.set(user.id, {
+					...user,
+					strings: currState.strings + 1,
+				});
+			}
+		});
+		const finals: Array<Friend> = [];
+		m.forEach((value) => {
+			finals.push(value);
+		});
+		return finals;
+	}
 	private static getDistinctUsersFromCollection = (
 		users: Array<CollectionUser>
 	) => {
@@ -258,5 +287,49 @@ export class UserService {
 			users: finalCollection,
 			message,
 		};
+	}
+	public static async getFriendsForUser(
+		userId: string
+	): Promise<Array<Friend>> {
+		// Get splits user is part of
+		// this will include both
+		// 	- splits of expenses authored by user
+		// 	- splits of expenses authored by user's direct friends
+		const splitsUserIsPartOf = await splitRepo.find({ user: userId });
+		if (!splitsUserIsPartOf) return [];
+		Logger.debug("splitsUserIsPartOf", splitsUserIsPartOf);
+		// Get expenses authored by user
+		const expensesAuthoredByUser = splitsUserIsPartOf
+			.map((s) => s.expense)
+			.filter((e) => e.author.id === userId);
+		Logger.debug("expensesAuthoredByUser", expensesAuthoredByUser);
+		const splitsForExpensesAuthoredByUser = await splitRepo.find({
+			expense: { $in: expensesAuthoredByUser.map((e) => e.id) },
+		});
+		Logger.debug(
+			"splitsForExpensesAuthoredByUser",
+			splitsForExpensesAuthoredByUser
+		);
+		// Get direct friends
+		const directFriendsFromForeignExpenses = splitsUserIsPartOf.map(
+			(s) => s.expense.author
+		);
+		const directFriendsFromUserExpenses = (
+			splitsForExpensesAuthoredByUser || []
+		).map((s) => s.user);
+		/* const allUsers = [
+			...splitsUserIsPartOf,
+			...(splitsForExpensesAuthoredByUser || []),
+		].map((s) => s.expense.author); */
+		const allUsers = [
+			...directFriendsFromForeignExpenses,
+			...directFriendsFromUserExpenses,
+		];
+		Logger.debug("authorsOfSplits", allUsers);
+		// Get distinct users since the collection can have several duplicates
+		// Also filter out the current user, since friendship can't be with oneself
+		return UserService.getDistinctFriends(allUsers).filter(
+			(a) => a.id !== userId
+		);
 	}
 }

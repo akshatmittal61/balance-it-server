@@ -50,4 +50,9 @@ export class UserController {
 		const users = await UserService.searchInBulk(query, invitee);
 		return ApiSuccess(res).send(users);
 	}
+	public static async getUserFriends(req: ApiRequest, res: ApiResponse) {
+		const userId = genericParse(getNonEmptyString, req.user?.id);
+		const friends = await UserService.getFriendsForUser(userId);
+		return ApiSuccess(res).send(friends);
+	}
 }

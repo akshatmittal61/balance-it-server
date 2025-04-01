@@ -18,6 +18,9 @@ export const ExpenseSchema = {
 	timestamp: {
 		type: Date,
 	},
+	description: {
+		type: String,
+	},
 	group: {
 		type: mongoose.Schema.Types.ObjectId,
 		ref: "Group",

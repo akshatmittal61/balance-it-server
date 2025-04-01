@@ -18,6 +18,10 @@ class SplitRepo extends BaseRepo<Split, ISplit> {
 		if (!res) return null;
 		const expense = getObjectFromMongoResponse<IExpense>(res.expense);
 		if (!expense) return null;
+		const authorOfExpense = getObjectFromMongoResponse<IUser>(
+			expense.author
+		)!;
+		expense.author = authorOfExpense;
 		res.expense = expense;
 		const user = getObjectFromMongoResponse<IUser>(res.user);
 		if (!user) return null;
@@ -63,10 +67,13 @@ class SplitRepo extends BaseRepo<Split, ISplit> {
 			.populate("user")
 			.populate({
 				path: "expense",
-				populate: {
-					path: "group",
-					populate: { path: "author" },
-				},
+				populate: [
+					{ path: "author" },
+					{
+						path: "group",
+						populate: { path: "author" },
+					},
+				],
 			});
 		const parsedRes = res.map(this.parser).filter((obj) => obj != null);
 		if (parsedRes.length === 0) return null;

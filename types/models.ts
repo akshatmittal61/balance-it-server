@@ -59,6 +59,7 @@ export type Otp = Model<{
  * @param {number} amount - Amount of the expense
  * @param {string} author - Author of the expense (References User model)
  * @param {string} timestamp - Creation time of the expense
+ * @param {string} description - Description of the expense (optional)
  * @param {string} group - Group id (References Group model) (optional - for group expenses)
  * @param {string[]} tags - Tags for the expense (optional)
  * @param {string} icon - Icon of the expense (optional)
@@ -70,6 +71,7 @@ export type Expense = Model<{
 	amount: number;
 	author: string;
 	timestamp: string;
+	description?: string;
 	group?: string;
 	tags?: string[];
 	icon?: string;
