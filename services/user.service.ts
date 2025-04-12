@@ -79,7 +79,7 @@ export class UserService {
 	public static async invite(email: string, invitedByUser: IUser) {
 		await sendEmailTemplate(
 			email,
-			"Invite to Settle It",
+			"Invite to Balance It",
 			emailTemplates.USER_INVITED,
 			{
 				invitedBy: {

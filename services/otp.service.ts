@@ -89,7 +89,7 @@ export class OtpService {
 	public static async send(email: string, otp: string) {
 		await sendEmailTemplate(
 			email,
-			"OTP requested for Login | Settle It",
+			"OTP requested for Login | Balance It",
 			emailTemplates.OTP,
 			{ otp }
 		);

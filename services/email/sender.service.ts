@@ -18,7 +18,7 @@ export const sendEmailService = async (
 	const smtpTransport = createTransport(transportOptions);
 	const mailOptions = {
 		from: {
-			name: "Settle It!",
+			name: "Balance It!",
 			address: googleEmailConfig.email,
 		},
 		to,

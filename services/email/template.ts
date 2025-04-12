@@ -414,7 +414,7 @@ ${
       <td style="overflow-wrap:break-word;word-break:break-word;padding:0px 10px 20px;font-family:arial,helvetica,sans-serif;" align="left">
         
   <div style="font-size: 14px; color: #ffffff; line-height: 140%; text-align: center; word-wrap: break-word;">
-    <p style="font-size: 14px; line-height: 140%;">To connect, please contact: <span style="color: #ffffff; line-height: 19.6px;"><a rel="noopener" href="mailto:${googleEmailConfig.email}?subject=Query%20regarding%20Settle%20It" target="_blank" style="color: #ffffff;">${googleEmailConfig.email}</a></span></p>
+    <p style="font-size: 14px; line-height: 140%;">To connect, please contact: <span style="color: #ffffff; line-height: 19.6px;"><a rel="noopener" href="mailto:${googleEmailConfig.email}?subject=Query%20regarding%Balance%20It" target="_blank" style="color: #ffffff;">${googleEmailConfig.email}</a></span></p>
   </div>
 
       </td>
